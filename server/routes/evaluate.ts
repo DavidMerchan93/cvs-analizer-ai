@@ -1,6 +1,7 @@
-import { GoogleGenAI } from "@google/genai";
+import { Router, Request, Response } from 'express';
+import { GoogleGenAI } from '@google/genai';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+export const evaluateRouter = Router();
 
 const SYSTEM_INSTRUCTION = `
 ## ROL Y EXPERTISE
@@ -94,14 +95,39 @@ NUNCA: Evaluar nombre, género, edad. Inferir datos. Emitir score sin justificac
 SIEMPRE: Citar evidencia textual. Aplicar knockout antes de deseables. Usar la escala fija. Generar tabla comparativa al final en Markdown.
 `;
 
-export async function evaluateCandidates(jobDescription: string, candidates: {name: string, cv: string}[]) {
-  
-  let candidatesText = "";
-  candidates.forEach((c, index) => {
-    candidatesText += `--- CANDIDATO ${index + 1}: ${c.name} ---\n${c.cv}\n\n`;
-  });
+interface Candidate {
+  name: string;
+  cv: string;
+}
 
-  const prompt = `
+interface EvaluateRequestBody {
+  jobDescription: string;
+  candidates: Candidate[];
+}
+
+evaluateRouter.post('/evaluate', async (req: Request, res: Response) => {
+  const { jobDescription, candidates } = req.body as EvaluateRequestBody;
+
+  if (!jobDescription || !Array.isArray(candidates) || candidates.length === 0) {
+    res.status(400).json({ error: 'Missing jobDescription or candidates' });
+    return;
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    res.status(500).json({ error: 'Server misconfiguration: GEMINI_API_KEY not set' });
+    return;
+  }
+
+  try {
+    const ai = new GoogleGenAI({ apiKey });
+
+    let candidatesText = '';
+    candidates.forEach((c, index) => {
+      candidatesText += `--- CANDIDATO ${index + 1}: ${c.name} ---\n${c.cv}\n\n`;
+    });
+
+    const prompt = `
 A continuación se presenta el perfil del cargo y los CVs de los candidatos a evaluar:
 
 ### ENTRADA A — JOB DESCRIPTION
@@ -112,14 +138,18 @@ ${candidatesText}
 
 Realiza la evaluación según tus instrucciones, utilizando formato Markdown para los títulos, negritas y tablas.`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.1-pro-preview",
-    contents: prompt,
-    config: {
-      systemInstruction: SYSTEM_INSTRUCTION,
-      temperature: 0.2, // Low temperature for consistent evaluation
-    },
-  });
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.1-pro-preview',
+      contents: prompt,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.2,
+      },
+    });
 
-  return response.text;
-}
+    res.json({ result: response.text });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Gemini API error';
+    res.status(502).json({ error: message });
+  }
+});

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Briefcase, UserPlus, Trash2, FileText, Play, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
-import { evaluateCandidates } from './services/geminiService';
+import { evaluateCandidates } from './services/apiClient';
 
 export default function App() {
   const [jobDescription, setJobDescription] = useState('');
