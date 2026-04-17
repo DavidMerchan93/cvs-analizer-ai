@@ -11,5 +11,5 @@ app.use(express.json({ limit: '2mb' }));
 app.use('/api', evaluateRouter);
 
 app.listen(PORT, () => {
-  console.log(`[server] Running on http://localhost:${PORT}`);
+  console.log(`[backend] Running on http://localhost:${PORT}`);
 });

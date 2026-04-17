@@ -56,10 +56,10 @@ AI Recruiter Evaluator - A React + Node.js application that uses Google's Gemini
 - **Frontend only**: `npm run dev:client`
 - **Backend only**: `npm run dev:server`
 - **Build frontend**: `npm run build`
-- **Build server**: `npm run build:server` (compiles to `dist/server/`)
+- **Build server**: `npm run build:server` (compiles to `dist/backend/`)
 - **Run production server**: `npm start`
 - **Preview production build**: `npm run preview`
-- **Type checking**: `npm run lint` (checks both frontend and server tsconfigs)
+- **Type checking**: `npm run lint` (checks both frontend and backend tsconfigs)
 - **Clean build artifacts**: `npm run clean`
 
 ## Architecture
@@ -104,12 +104,12 @@ Browser → Vite dev server (3000) → /api proxy → Express server (3001) → 
 │       ├── index.css         # Global styles + custom color palette
 │       └── services/
 │           └── apiClient.ts  # fetch-based client for the backend API
-├── server/
+├── backend/
 │   ├── index.ts              # Express entry point (port 3001)
 │   └── routes/
 │       └── evaluate.ts       # POST /api/evaluate — Gemini logic lives here
 ├── tsconfig.json             # Frontend TypeScript config (bundler mode, DOM)
-├── tsconfig.server.json      # Server TypeScript config (NodeNext module)
+├── tsconfig.server.json      # Backend TypeScript config (NodeNext module)
 └── vite.config.ts            # Vite config — root: frontend/, /api proxy
 ```
 
@@ -128,9 +128,9 @@ Browser → Vite dev server (3000) → /api proxy → Express server (3001) → 
 - Posts to `POST /api/evaluate` and returns the markdown string
 - Throws descriptive errors on non-2xx responses
 
-**Express Server**: `server/index.ts` — Starts Express on port 3001, loads `.env.local` via dotenv.
+**Express Server**: `backend/index.ts` — Starts Express on port 3001, loads `.env.local` via dotenv.
 
-**Evaluate Route**: `server/routes/evaluate.ts` — `POST /api/evaluate` handler:
+**Evaluate Route**: `backend/routes/evaluate.ts` — `POST /api/evaluate` handler:
 - Validates request body
 - Reads `GEMINI_API_KEY` from `process.env` (never from client)
 - Instantiates `GoogleGenAI` per-request
@@ -174,7 +174,7 @@ Model: `gemini-3.1-pro-preview` at temperature `0.2` (low, for consistent result
 `GEMINI_API_KEY` is read exclusively by the Express server at request time via dotenv:
 
 ```typescript
-// server/index.ts — runs before any route handler
+// backend/index.ts — runs before any route handler
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 ```
@@ -188,9 +188,9 @@ Two separate tsconfigs:
 | File | Scope | Module system | Purpose |
 |---|---|---|---|
 | `tsconfig.json` | `src/`, `vite.config.ts` | ESNext + bundler | Frontend (Vite handles compilation) |
-| `tsconfig.server.json` | `server/` | NodeNext | Server (emits to `dist/server/`) |
+| `tsconfig.server.json` | `backend/` | NodeNext | Backend (emits to `dist/backend/`) |
 
-**NodeNext import rule**: Relative imports inside `server/` must use `.js` extensions in source (e.g., `'./routes/evaluate.js'`). tsx resolves `.js` → `.ts` at dev time; Node uses the compiled `.js` in production.
+**NodeNext import rule**: Relative imports inside `backend/` must use `.js` extensions in source (e.g., `'./routes/evaluate.js'`). tsx resolves `.js` → `.ts` at dev time; Node uses the compiled `.js` in production.
 
 ### Hot Module Replacement (HMR)
 

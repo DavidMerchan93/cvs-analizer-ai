@@ -4,12 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n client,server -c cyan,green \"vite --port=3000 --host=0.0.0.0\" \"tsx watch server/index.ts\"",
+    "dev": "concurrently -n client,server -c cyan,green \"vite --port=3000 --host=0.0.0.0\" \"tsx watch backend/index.ts\"",
     "dev:client": "vite --port=3000 --host=0.0.0.0",
-    "dev:server": "tsx watch server/index.ts",
+    "dev:server": "tsx watch backend/index.ts",
     "build": "vite build",
     "build:server": "tsc --project tsconfig.server.json",
-    "start": "node dist/server/index.js",
+    "start": "node dist/backend/index.js",
     "preview": "vite preview",
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit && tsc --project tsconfig.server.json --noEmit"

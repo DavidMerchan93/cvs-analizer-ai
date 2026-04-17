@@ -4,14 +4,14 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["ES2022"],
-    "outDir": "dist/server",
-    "rootDir": "server",
+    "outDir": "dist/backend",
+    "rootDir": "backend",
     "strict": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "noEmit": false
   },
-  "include": ["server/**/*.ts"],
+  "include": ["backend/**/*.ts"],
   "exclude": ["node_modules", "src", "dist"]
 }
